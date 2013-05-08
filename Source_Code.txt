@@ -1,0 +1,269 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Office.Core;
+using PowerPoint = Microsoft.Office.Interop.PowerPoint;
+using Graph = Microsoft.Office.Interop.Graph;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Diagnostics;
+
+namespace PDFtoPPTX_Build_0._2
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // Definitions for the activation of certain windows
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // Get a handle to an application window.
+        [DllImport("USER32.DLL")]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        // Activate an application window.
+        [DllImport("USER32.DLL")]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // Actual program code for the conversion
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Get a handle to the Adobe application. The window class
+            // and window name were obtained using the Spy++ tool.
+            IntPtr PDFHandle = FindWindow("AcrobatSDIWindow", null);
+
+            // Get a handle to the Power Point application. The window class
+            // and window name were obtained using the Spy++ tool.
+            IntPtr PPTHandle = FindWindow("PPTFrameClass", null);
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // Variable definitions
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            String strSnap, potx, pdf, tmpsnap, value, pptout, potxpre, pptoutpre, tmpsnappre;
+            potx = textBox1.Text;
+            pdf = textBox2.Text;
+            value = textBox3.Text;
+            pptout = textBox4.Text;
+            tmpsnap = textBox5.Text;
+            potxpre = "...\\dummy.potx";
+            pptoutpre = "...\\output.pptx";
+            tmpsnappre = "...\\img.jpg";
+
+            //Define Integer for Loop Count, slide numbers, filepath input
+            int x = 1;
+            int ns = 0;
+            int potxt = String.Compare(potxpre, potx, true);
+            int pptoutt = String.Compare(pptoutpre, pptout, true);
+            int tmpsnapt = String.Compare(tmpsnappre, tmpsnap, true);
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // Contorolling the textBox input values
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // Check if textBox1 is empty if so display messagebox and return
+            if (potxt == 1)
+            {
+                MessageBox.Show("Template filepath missing!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Check if a textBox3 is empty
+            if (value == "")
+            {
+                MessageBox.Show("Number of slides missing!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Check if a textBox3 returns a number different from zero
+            // Convert string value from textbox3 into an integer
+            ns = Convert.ToInt32(value);
+
+            if (ns <= 0 || ns >= 500)
+            {
+                MessageBox.Show("Number slides out of range (0 and Below or greater 500)", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Check if a filepath in textBox5 is choosen
+            if (tmpsnapt == 1)
+            {
+                MessageBox.Show("Snapshot filepath missing!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Filepath for the temporary snapshots if not changed by user = C:\\temp\\img.jpg
+            strSnap = tmpsnap;
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // Open Power Point
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // Definitions for the PowerPoint commands
+            PowerPoint.Application objApp;
+            PowerPoint.Presentations objPresSet;
+            PowerPoint._Presentation objPres;
+            PowerPoint.Slides objSlides;
+            PowerPoint._Slide objSlide;
+
+            // Open a new PPTX from the PPTX template
+            objApp = new PowerPoint.Application();
+            objApp.Visible = MsoTriState.msoTrue;
+            objPresSet = objApp.Presentations;
+            objPres = objPresSet.Open(@potx, MsoTriState.msoFalse, MsoTriState.msoTrue, MsoTriState.msoTrue);
+            objSlides = objPres.Slides;
+
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // Opens the PDF for conversion
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (PDFHandle == IntPtr.Zero)
+            {
+                Process.Start(@pdf);
+                System.Threading.Thread.Sleep(1000);
+            }
+
+            //Setting the Quality of the Slides
+            SetForegroundWindow(PDFHandle);
+            SendKeys.Send("%a");
+            SendKeys.Send("z");
+            SendKeys.Send("k"); // z if adobe 9
+            SendKeys.Send("3");
+            SendKeys.Send("0");
+            SendKeys.Send("0");
+            SendKeys.Send("{ENTER}");
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // Start Loop to convert PDF to PPT
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            while (x - 1 < ns)
+            {
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Adobe operations
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Make Adobe the foreground application
+                SetForegroundWindow(PDFHandle);
+
+                //Select Snapping Tool
+                SendKeys.Send("%b");
+                SendKeys.Send("c");
+
+                //Select Snapping Tool Adobe 9
+                //SendKeys.Send("%w");
+                //SendKeys.Send("z");
+                //SendKeys.Send("c");
+
+                //Select All
+                SendKeys.Send("%b");
+                SendKeys.Send("a");
+
+                //Copy marked area
+                SendKeys.Send("^c");
+
+                //Make the system waite to copy to clipboard
+                System.Threading.Thread.Sleep(300);
+
+                //Page Down
+                SendKeys.Send("%a");
+                SendKeys.Send("n");
+                SendKeys.Send("n");
+
+                //Page Down Adobe 9
+                //SendKeys.Send("%a");
+                //SendKeys.Send("g");
+                //SendKeys.Send("n");
+
+                // Define variable to save snapshot
+                IDataObject data = Clipboard.GetDataObject();
+                Image snap = (Image)data.GetData(DataFormats.Bitmap, true);
+                snap.Save(@strSnap, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Power Point operations
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                // Add a new Slide
+                objSlide = objSlides.Add(x, PowerPoint.PpSlideLayout.ppLayoutBlank);
+
+                // Insert snapshot from file
+                objSlide.Shapes.AddPicture(@strSnap, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0, 725, 542);
+
+                // Loop Counter
+                x = x + 1;
+                System.Threading.Thread.Sleep(100);
+                }
+
+            if (pptoutt == 1)
+            {
+
+            }
+            else
+            {
+                objPres.SaveAs(@pptout);
+            }
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        // Buttons for the file selection
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+
+                string dirName = openFileDialog1.FileName;
+                textBox1.Text = dirName;
+                string dir = System.IO.Path.GetDirectoryName(openFileDialog1.FileName);
+                string snap = dir + @"\img.jpg";
+                textBox5.Text = snap;
+                string output = dir + @"\output.pptx";
+                textBox4.Text = output;
+            }
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+            string dirName = openFileDialog1.FileName;
+            textBox2.Text = dirName;
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                string dirName = saveFileDialog1.FileName;
+                textBox4.Text = dirName;
+            }
+        }
+
+        private void button5_Click_1(object sender, EventArgs e)
+        {
+            if (saveFileDialog2.ShowDialog() == DialogResult.OK)
+            {
+                string dirName = saveFileDialog2.FileName;
+                textBox5.Text = dirName;
+            }
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
