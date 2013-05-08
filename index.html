@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="PDFtoPPTX : Imports PDF presentation into Power Point" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>PDFtoPPTX</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/KonradSchaefer/PDFtoPPTX">View on GitHub</a>
+
+          <h1 id="project_title">PDFtoPPTX</h1>
+          <h2 id="project_tagline">Imports PDF presentation into Power Point</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/KonradSchaefer/PDFtoPPTX/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/KonradSchaefer/PDFtoPPTX/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>PDFtoPPTX 0.2</h1>
+
+<h2>Motivation</h2>
+
+<p>The essential idea of this project evolved from my wish to use the Power Point
+presenter view for my LaTex created slides that are in PDF. So it’s actually no
+fancy wish I thought but trying to use the Adobe implemented options resulted in
+quite crappy output. Since I didn’t want to pay for any third party software
+that didn’t offer previews of their output I decided to code something myself.
+This how my first project in C# came to life.</p>
+
+<h2>How it works</h2>
+
+<p>What you find in this repository is basically the second version of my windows
+from application. The small tool basically takes a snapshot of each slide of the
+PDF presentation and imports it into a new Power Point presentation. You need
+Power Point and a the Adobe Acrobat Pro/Reader to use the program. The user
+specifies the location of a dummy.potx that is used as target for the snapshots,
+the path of the source PDF, the number of slides, the output path and some place
+to store the temporary snapshots. The quality of the resulting pptx is great and
+after “conversion” you can add comments in Power Point that are available in the
+presenter mode in Power Point. The minor drawback is, that any links or buttons
+included in the original PDF are not preserved since the slides are copied as
+pictures.</p>
+
+<h2>What I did and didn’t do</h2>
+
+<p>So far I used Visual Studio and C# to write the program. All actions performed
+on the PDF are done via sendKeys commands. I know it’s not the best option but
+it’s my first C program ever and I thought that will do. I couldn’t get a direct
+Adobe access to work, so if anyone has a better solution it will be much
+appreciated. For the Power Point operations I used the implemented Office
+libraries in Visual Studio to command Power Point “directly”. In the first
+versions this was also done via sendKeys. It has some controls implemented to
+check if all necessary inputs are made and returns an error message if not. I
+didn’t find a way around the Office protection against downloaded files, so maybe
+one has to manually approve the dummy.potx, open it confirm the dialog, or just
+create an empty PPTX as target. Another small issue is that it’s not working in
+the background. So as long as the conversion runs you cannot make any input, but
+since it’s quite fast, on an average PC, I didn’t bother to work on that.</p>
+
+<p>At this time it is certainly not perfect but it’s serves the purpose it was
+created for. I find it quite useful therefore wanted to share it. If somebody
+knows how to improve it you are welcome to it.</p>
+
+<p>So fare it works with of Power Point 07/10/12 and Adobe Acrobat/Reader 11 on
+Windows 7. The short cuts for Adobe Acrobat/Reader 9 are in the comments of the
+source code. I couldn’t get a version selection to work so I just left it in the
+comments.</p>
+
+<h2>Repository Content</h2>
+
+<p>This repository includes the Visual Studios Project Folder, the release folder
+including the dummy.potx and the actual program .exe file, and an additional file
+with source code in C#.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">PDFtoPPTX maintained by <a href="https://github.com/KonradSchaefer">KonradSchaefer</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
